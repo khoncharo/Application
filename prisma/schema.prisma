@@ -5,8 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider   = "prisma-client-js"
+  engineType = "library"
 }
 
 datasource db {
@@ -14,13 +14,42 @@ datasource db {
 }
 
 model User {
-  id        String      @id @default(uuid())
-  firstName String
-  lastName  String?
-  email     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  password  String
+  id           String        @id @default(uuid())
+  firstName    String
+  lastName     String
+  email        String        @unique
+  password     String
+  event        Event[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  participants Participant[]
 
   @@map("users")
+}
+
+model Event {
+  id           String        @id @default(uuid())
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  name         String
+  description  String
+  dateTime     DateTime
+  location     String
+  capacity     Int?
+  participants Participant[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("events")
+}
+
+model Participant {
+  event    Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId  String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  joinedAt DateTime @default(now())
+
+  @@id([userId, eventId])
+  @@map("participants")
 }

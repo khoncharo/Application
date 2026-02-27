@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Injectable } from '@nestjs/common';
 import { IDatabaseConfig } from './datavase-config.intereface';
 import { validateEnvConfig } from '../config/validate-config';
@@ -13,11 +14,12 @@ export class DatabaseConfigService {
 
   private initialize(): IDatabaseConfig {
     const envValues = {
+      type: 'postgres',
       host: process.env.DATABASE_HOST,
       port: process.env.DATABASE_PORT,
-      user: process.env.DATABASE_USER,
+      username: process.env.DATABASE_USER,
       password: process.env.DATABASE_PASSWORD,
-      name: process.env.DATABASE_NAME,
+      database: process.env.DATABASE_NAME,
       URL: process.env.DATABASE_URL,
     };
 

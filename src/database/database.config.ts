@@ -11,13 +11,13 @@ export class DatabaseConfig implements IDatabaseConfig {
   port: number;
 
   @IsString()
-  user: string;
+  username: string;
 
   @IsString()
   password: string;
 
   @IsString()
-  name: string;
+  database: string;
 
   @IsString()
   URL: string;

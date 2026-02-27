@@ -1,8 +1,8 @@
 export interface IDatabaseConfig {
   host: string;
   port: number;
-  user: string;
+  username: string;
   password: string;
-  name: string;
+  database: string;
   URL: string;
 }
