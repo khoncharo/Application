@@ -1,5 +1,11 @@
 import { Type } from 'class-transformer';
-import { IsDate, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  IsDate,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateEventDto {
   @IsNotEmpty()
@@ -14,12 +20,12 @@ export class CreateEventDto {
   @IsDate()
   @Type(() => Date)
   dateTime: Date;
-  //change to just date and add time
 
   @IsNotEmpty()
   @IsString()
   location: string;
 
   @IsNumber()
+  @IsOptional()
   capacity?: number;
 }
