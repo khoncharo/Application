@@ -18,13 +18,25 @@ import { AuthType } from 'src/auth/enums/auth-type.enum';
 import { PatchEventDto } from './dtos/patch-event.dto';
 import { EventDetailsDto } from './dtos/get-event.dto';
 import { plainToInstance } from 'class-transformer';
+import { ApiTags } from '@nestjs/swagger';
+import { CreateEventSwagger } from './swagger/create-event';
+import { UpdateEventSwagger } from './swagger/update-event';
+import { FindAllEventsSwagger } from './swagger/find-events';
+import { EventDetailsSwagger } from './swagger/details-event';
+import { FindOneEventSwagger } from './swagger/find-one-event';
+import { LeaveEventSwagger } from './swagger/leave-event';
+import { JoinEventSwagger } from './swagger/join-event';
+import { DeleteEventSwagger } from './swagger/delete-event';
+import { GetMyEventsSwagger } from './swagger/user-event';
 
 @Controller('events')
+@ApiTags('Events')
 @Auth(AuthType.Bearer)
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Post()
+  @CreateEventSwagger()
   public create(
     @Body() createEventDto: CreateEventDto,
     @ActiveUser() user: ActiveUserData,
@@ -32,42 +44,55 @@ export class EventsController {
     return this.eventsService.create(createEventDto, user);
   }
 
-  @Patch(':id')
-  public update(@Param('id') id: string, @Body() patchEventDto: PatchEventDto) {
-    return this.eventsService.update({ ...patchEventDto, id });
-  }
-
-  @Get()
-  public findAll() {
-    return this.eventsService.findAll();
-  }
-
-  @Get(':id')
-  public findOne(@Param('id') id: string) {
-    return this.eventsService.findOne(id);
-  }
-
   @Post(':id/join')
+  @JoinEventSwagger()
   public join(@Param('id') id: string, @ActiveUser() user: ActiveUserData) {
     return this.eventsService.join(id, user);
   }
 
   @Post(':id/leave')
+  @LeaveEventSwagger()
   public leave(@Param('id') id: string, @ActiveUser() user: ActiveUserData) {
     return this.eventsService.leave(id, user);
   }
 
-  @Delete(':id')
-  public delete(@Param('id') id: string, @ActiveUser() user: ActiveUserData) {
-    return this.eventsService.delete(id, user);
+  @Patch(':id')
+  @UpdateEventSwagger()
+  public update(@Param('id') id: string, @Body() patchEventDto: PatchEventDto) {
+    return this.eventsService.update(id, patchEventDto);
+  }
+
+  @Get()
+  @FindAllEventsSwagger()
+  public findAll() {
+    return this.eventsService.findAll();
+  }
+
+  @Get('me')
+  @GetMyEventsSwagger()
+  public getMyEvents(@ActiveUser() user: ActiveUserData) {
+    return this.eventsService.findUserEvents(user);
+  }
+
+  @Get(':id')
+  @FindOneEventSwagger()
+  public findOne(@Param('id') id: string) {
+    return this.eventsService.findOne(id);
   }
 
   @Get(':id/details')
+  @EventDetailsSwagger()
   @UseInterceptors(ClassSerializerInterceptor)
   public async findDetails(@Param('id') id: string) {
     const event = await this.eventsService.findDetails(id);
     return plainToInstance(EventDetailsDto, event, {
       excludeExtraneousValues: true,
     });
+  }
+
+  @Delete(':id')
+  @DeleteEventSwagger()
+  public delete(@Param('id') id: string, @ActiveUser() user: ActiveUserData) {
+    return this.eventsService.delete(id, user);
   }
 }

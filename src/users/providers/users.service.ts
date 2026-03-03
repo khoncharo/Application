@@ -36,14 +36,4 @@ export class UsersService {
   public async findOneById(id: string): Promise<User | null> {
     return await this.prisma.user.findUnique({ where: { id } });
   }
-
-  public async findUserEvents(user: ActiveUserData) {
-    const events = await this.prisma.participant.findMany({
-      where: { userId: user.sub },
-    });
-
-    return events.map(({ ...event }) => ({
-      ...event,
-    }));
-  }
 }

@@ -8,6 +8,8 @@ import { CreateEventDto } from './dtos/create-event.dto';
 import { ActiveUserData } from 'src/auth/interfaces/active-user-data.interface';
 import { PrismaService } from 'src/prisma/providers/prisma.service';
 import { PatchEventDto } from './dtos/patch-event.dto';
+import { UserEventDto } from './dtos/user-event.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class EventsService {
@@ -22,9 +24,7 @@ export class EventsService {
     });
   }
 
-  public async update(patchEventDto: PatchEventDto) {
-    const { id, ...data } = patchEventDto;
-
+  public async update(id: string, patchEventDto: PatchEventDto) {
     const event = await this.prisma.event.findUnique({
       where: { id },
     });
@@ -35,7 +35,7 @@ export class EventsService {
 
     return await this.prisma.event.update({
       where: { id },
-      data,
+      data: patchEventDto,
     });
   }
 
@@ -165,5 +165,30 @@ export class EventsService {
       participantCount: _count.participants,
       participants: participants.map(({ user }) => user),
     };
+  }
+
+  public async findUserEvents(user: ActiveUserData) {
+    const participants = await this.prisma.participant.findMany({
+      where: { userId: user.sub },
+      include: {
+        event: {
+          select: {
+            name: true,
+            description: true,
+            dateTime: true,
+            location: true,
+            capacity: true,
+          },
+        },
+      },
+    });
+
+    return participants.map(({ event, joinedAt }) =>
+      plainToInstance(
+        UserEventDto,
+        { ...event, joinedAt },
+        { excludeExtraneousValues: true },
+      ),
+    );
   }
 }

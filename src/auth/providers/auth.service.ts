@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { UsersService } from 'src/users/providers/users.service';
-import { CreateAuthDto } from '../dto/createa-auth.dto';
-import { RefreshTokenDto } from '../dto/refresh-token.dto';
+import { CreateAuthDto } from '../dtos/createa-auth.dto';
+import { RefreshTokenDto } from '../dtos/refresh-token.dto';
 import { JwtService } from './jwt.service';
 import { JwtService as BaseJwtService } from '@nestjs/jwt';
 import jwtConfig from '../config/jwt.config';
