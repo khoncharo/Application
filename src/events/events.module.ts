@@ -11,7 +11,7 @@ import { AuthenticationGuard } from 'src/auth/guards/authentification.guard';
     EventsService,
     {
       provide: APP_GUARD,
-      useClass: AuthenticationGuard, // ← global guard that handles @Auth() decorator
+      useClass: AuthenticationGuard,
     },
   ],
   imports: [AuthModule],
