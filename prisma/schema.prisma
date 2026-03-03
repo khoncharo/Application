@@ -37,6 +37,7 @@ model Event {
   location     String
   capacity     Int?
   participants Participant[]
+  type         EventType     @default(PUBLIC)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
@@ -52,4 +53,9 @@ model Participant {
 
   @@id([userId, eventId])
   @@map("participants")
+}
+
+enum EventType {
+  PUBLIC
+  PRIVATE
 }

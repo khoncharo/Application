@@ -1,11 +1,13 @@
 import { Type } from 'class-transformer';
 import {
   IsDate,
+  IsEnum,
   IsNumber,
   IsOptional,
   IsString,
   IsUUID,
 } from 'class-validator';
+import { EventType } from '@prisma/client';
 
 export class PatchEventDto {
   @IsUUID()
@@ -27,6 +29,10 @@ export class PatchEventDto {
   @IsOptional()
   @IsString()
   location?: string;
+
+  @IsOptional()
+  @IsEnum(EventType)
+  type: EventType;
 
   @IsOptional()
   @IsNumber()

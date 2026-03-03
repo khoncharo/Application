@@ -1,11 +1,13 @@
 import { Type } from 'class-transformer';
 import {
   IsDate,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
+import { EventType } from '@prisma/client';
 
 export class CreateEventDto {
   @IsNotEmpty()
@@ -28,4 +30,7 @@ export class CreateEventDto {
   @IsNumber()
   @IsOptional()
   capacity?: number;
+
+  @IsEnum(EventType)
+  type: EventType;
 }

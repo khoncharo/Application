@@ -137,4 +137,33 @@ export class EventsService {
 
     return { left: true, eventId: id };
   }
+
+  public async findDetails(id: string) {
+    const event = await this.prisma.event.findUnique({
+      where: { id },
+      include: {
+        user: true,
+        participants: {
+          include: {
+            user: true,
+          },
+        },
+        _count: {
+          select: { participants: true },
+        },
+      },
+    });
+
+    if (!event) {
+      throw new NotFoundException(`Event with ID ${id} not found`);
+    }
+
+    const { _count, participants, ...rest } = event;
+
+    return {
+      ...rest,
+      participantCount: _count.participants,
+      participants: participants.map(({ user }) => user),
+    };
+  }
 }
