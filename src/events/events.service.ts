@@ -173,6 +173,7 @@ export class EventsService {
       include: {
         event: {
           select: {
+            id: true,
             name: true,
             description: true,
             dateTime: true,

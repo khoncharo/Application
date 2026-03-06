@@ -49,6 +49,6 @@ export class EventDetailsDto {
   @Exclude()
   user: any;
 
-  @Exclude()
+  @Expose()
   userId: string;
 }

@@ -3,7 +3,6 @@ import { CreateUserDto } from '../dtos/create-user.dto';
 import { PrismaService } from 'src/prisma/providers/prisma.service';
 import { User } from '../entities/user.entity';
 import { BcryptService } from 'src/bcrypting/providers/bcrypt.service';
-import { ActiveUserData } from 'src/auth/interfaces/active-user-data.interface';
 
 @Injectable()
 export class UsersService {
