@@ -25,7 +25,6 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await register(form);
-      // Auto-login after register
       const tokens = await login({ email: form.email, password: form.password });
       storeLogin(tokens.accessToken, tokens.refreshToken);
       navigate('/');

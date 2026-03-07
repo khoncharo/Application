@@ -15,7 +15,6 @@ interface AuthState {
   hydrate: () => void;
 }
 
-// Simple JWT decode without the library - we parse the payload manually
 function parseJwt(token: string): JwtPayload {
   const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
   const json = decodeURIComponent(
@@ -63,7 +62,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const { accessToken, refreshToken } = JSON.parse(raw);
       const payload = parseJwt(accessToken);
-      // Check expiry
       const exp = (payload as JwtPayload & { exp?: number }).exp;
       if (exp && Date.now() / 1000 > exp) {
         localStorage.removeItem('tokens');
@@ -75,7 +73,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         email: payload.email,
         isAuthenticated: true,
       });
-      void refreshToken; // held in localStorage for the axios interceptor
+      void refreshToken;
     } catch {
       localStorage.removeItem('tokens');
     }

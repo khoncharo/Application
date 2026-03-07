@@ -11,7 +11,6 @@ export default function LoginPage() {
   const { login: storeLogin, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
 
-  // If already authenticated, redirect
   if (isAuthenticated) {
     navigate('/');
     return null;

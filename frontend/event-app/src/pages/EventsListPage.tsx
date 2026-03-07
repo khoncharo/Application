@@ -18,7 +18,6 @@ export default function EventsListPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Unauthenticated: public only. Authenticated: all events
   const visible = isAuthenticated
     ? events
     : events.filter((e) => e.type === 'PUBLIC');
