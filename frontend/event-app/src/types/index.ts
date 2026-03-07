@@ -68,7 +68,7 @@ export interface CreateEventDto {
   description: string;
   dateTime: string;
   location: string;
-  capacity?: number;
+  capacity?: number | null;
   type: 'PUBLIC' | 'PRIVATE';
 }
 
@@ -77,6 +77,6 @@ export interface PatchEventDto {
   description?: string;
   dateTime?: string;
   location?: string;
-  capacity?: number;
+  capacity?: number | null;
   type?: 'PUBLIC' | 'PRIVATE';
 }

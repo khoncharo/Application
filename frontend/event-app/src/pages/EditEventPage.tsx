@@ -1,22 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { getEvent, updateEvent } from '../api/events';
+import { getEventDetails, updateEvent } from '../api/events';
 import { useAuthStore } from '../store/authStore';
 import EventForm from '../components/EventForm';
-import type { CreateEventDto, Event } from '../types';
+import type { CreateEventDto, EventDetails } from '../types';
 
 export default function EditEventPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { userId } = useAuthStore();
 
-  const [event, setEvent] = useState<Event | null>(null);
+  const [event, setEvent] = useState<EventDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (!id) return;
-    getEvent(id)
+    getEventDetails(id)
       .then((data) => {
         if (data.userId !== userId) {
           navigate(`/events/${id}`);
@@ -43,7 +43,7 @@ export default function EditEventPage() {
   }
 
   if (error || !event) {
-    return <div className="text-center py-20 text-red-400">{error || 'Not found'}</div>;
+    return <div className="text-center py-20 text-red-500">{error || 'Not found'}</div>;
   }
 
   return (
@@ -57,11 +57,12 @@ export default function EditEventPage() {
       <div className="card">
         <EventForm
           initialValues={{
-          ...event,
-          capacity: event.capacity ?? undefined,
-        }}
-        onSubmit={handleSubmit}
-        submitLabel="Save Changes"
+            ...event,
+            capacity: event.capacity ?? undefined,
+          }}
+          participantCount={event.participantCount}
+          onSubmit={handleSubmit}
+          submitLabel="Save Changes"
         />
       </div>
     </div>

@@ -7,6 +7,7 @@ interface EventFormProps {
   initialValues?: Partial<CreateEventDto>;
   onSubmit: (data: CreateEventDto) => Promise<void>;
   submitLabel: string;
+  participantCount?: number;
 }
 
 interface FormState {
@@ -26,7 +27,7 @@ interface FormErrors {
   capacity?: string;
 }
 
-export default function EventForm({ initialValues, onSubmit, submitLabel }: EventFormProps) {
+export default function EventForm({ initialValues, onSubmit, submitLabel, participantCount }: EventFormProps) {
   const [form, setForm] = useState<FormState>({
     name: initialValues?.name ?? '',
     description: initialValues?.description ?? '',
@@ -51,6 +52,8 @@ export default function EventForm({ initialValues, onSubmit, submitLabel }: Even
     }
     if (form.capacity && isNaN(Number(form.capacity))) {
       newErrors.capacity = 'Capacity must be a number';
+    } else if (form.capacity && participantCount !== undefined && Number(form.capacity) < participantCount) {
+      newErrors.capacity = `Capacity cannot be less than the number of joined participants (${participantCount})`;
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -67,7 +70,7 @@ export default function EventForm({ initialValues, onSubmit, submitLabel }: Even
         description: form.description.trim(),
         dateTime: form.dateTime!.toISOString(),
         location: form.location.trim(),
-        capacity: form.capacity ? Number(form.capacity) : undefined,
+        capacity: form.capacity ? Number(form.capacity) : null,
         type: form.type,
       });
     } catch (err: unknown) {

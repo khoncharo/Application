@@ -1,13 +1,12 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Attach token on every request
 apiClient.interceptors.request.use((config) => {
   const tokens = localStorage.getItem('tokens');
   if (tokens) {
@@ -17,7 +16,6 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// On 401, try refreshing tokens
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -28,7 +26,9 @@ apiClient.interceptors.response.use(
         const tokens = localStorage.getItem('tokens');
         if (!tokens) throw new Error('No tokens');
         const { refreshToken } = JSON.parse(tokens);
-        const res = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken });
+        const res = await axios.post(`${BASE_URL}/auth/refresh`, {
+          refreshToken,
+        });
         localStorage.setItem('tokens', JSON.stringify(res.data));
         original.headers.Authorization = `Bearer ${res.data.accessToken}`;
         return apiClient(original);
@@ -38,5 +38,5 @@ apiClient.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
+  },
 );

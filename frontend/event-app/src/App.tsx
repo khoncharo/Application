@@ -21,15 +21,18 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public routes */}
+        {/* Auth pages */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* Protected routes wrapped in Layout */}
-        <Route element={<ProtectedRoute />}>
-          <Route element={<Layout />}>
-            <Route path="/" element={<EventsListPage />} />
-            <Route path="/events/:id" element={<EventDetailsPage />} />
+        {/* Public + authenticated pages share the Layout */}
+        <Route element={<Layout />}>
+          {/* Accessible by everyone */}
+          <Route path="/" element={<EventsListPage />} />
+          <Route path="/events/:id" element={<EventDetailsPage />} />
+
+          {/* Authenticated only */}
+          <Route element={<ProtectedRoute />}>
             <Route path="/events/:id/edit" element={<EditEventPage />} />
             <Route path="/create" element={<CreateEventPage />} />
             <Route path="/my-events" element={<MyEventsPage />} />

@@ -9,7 +9,7 @@ export default function EventsListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
-  const { userId } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     getEvents()
@@ -18,9 +18,10 @@ export default function EventsListPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const visible = events.filter(
-    (e) => e.type === 'PUBLIC' || e.userId === userId
-  );
+  // Unauthenticated: public only. Authenticated: all events
+  const visible = isAuthenticated
+    ? events
+    : events.filter((e) => e.type === 'PUBLIC');
 
   const filtered = visible.filter(
     (e) =>
@@ -30,7 +31,6 @@ export default function EventsListPage() {
 
   return (
     <div className="animate-fade-in">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="page-title">Upcoming Events</h1>
@@ -57,9 +57,7 @@ export default function EventsListPage() {
         </div>
       )}
 
-      {error && (
-        <div className="text-center py-16 text-red-400">{error}</div>
-      )}
+      {error && <div className="text-center py-16 text-red-500">{error}</div>}
 
       {!loading && !error && filtered.length === 0 && (
         <div className="text-center py-20">

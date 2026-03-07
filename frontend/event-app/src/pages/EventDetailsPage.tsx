@@ -23,7 +23,7 @@ function initials(first: string, last: string) {
 export default function EventDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { userId } = useAuthStore();
+  const { userId, isAuthenticated } = useAuthStore();
 
   const [event, setEvent] = useState<EventDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,11 +62,15 @@ export default function EventDetailsPage() {
     return <div className="text-center py-20 text-red-400">{error || 'Not found'}</div>;
   }
 
-  const isOrganizer = event.userId === userId;
-  const isParticipant = event.participants.some((p) => p.id === userId);
+  const isOrganizer = isAuthenticated && event.userId === userId;
+  const isParticipant = isAuthenticated && event.participants.some((p) => p.id === userId);
   const isFull = event.capacity != null && event.participantCount >= event.capacity;
 
   const handleJoin = async () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
     setActionLoading(true);
     setActionError('');
     try {
@@ -201,9 +205,23 @@ export default function EventDetailsPage() {
         {!isOrganizer && (
           <div className="mt-5">
             {actionError && (
-              <p className="text-red-400 text-sm mb-2">{actionError}</p>
+              <p className="text-red-500 text-sm mb-2">{actionError}</p>
             )}
-            {isParticipant ? (
+            {!isAuthenticated ? (
+              <div>
+                <button
+                  onClick={() => navigate('/login')}
+                  disabled={isFull}
+                  className="btn-primary w-full sm:w-auto"
+                >
+                  {isFull ? 'Event Full' : 'Sign in to Join'}
+                </button>
+                <p className="text-xs text-slate-400 mt-2">
+                  Don't have an account?{' '}
+                  <a href="/register" className="text-accent hover:underline">Register here</a>
+                </p>
+              </div>
+            ) : isParticipant ? (
               <button
                 onClick={handleLeave}
                 disabled={actionLoading}

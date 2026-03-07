@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  ValidateIf,
 } from 'class-validator';
 import { EventType } from '@prisma/client';
 
@@ -28,9 +29,10 @@ export class PatchEventDto {
 
   @IsOptional()
   @IsEnum(EventType)
-  type: EventType;
+  type?: EventType;
 
+  @ValidateIf((o) => o.capacity !== null)
   @IsOptional()
   @IsNumber()
-  capacity?: number;
+  capacity?: number | null;
 }

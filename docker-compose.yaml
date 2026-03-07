@@ -13,5 +13,34 @@ services:
       - pgdata:/var/lib/postgresql/data
     command: ["postgres"]
 
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-radency}
+      JWT_SECRET: ${JWT_SECRET:-change_this_secret_in_production}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-radency}
+      JWT_ISSUER: ${JWT_ISSUER:-radency}
+      JWT_ACCESS_TOKEN_TTL: ${JWT_ACCESS_TOKEN_TTL:-3600}
+      JWT_REFRESH_TOKEN_TTL: ${JWT_REFRESH_TOKEN_TTL:-86400}
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend/event-app
+      dockerfile: ../../Dockerfile.frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
 volumes:
   pgdata:

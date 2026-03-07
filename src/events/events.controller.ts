@@ -31,12 +31,12 @@ import { GetMyEventsSwagger } from './swagger/user-event';
 
 @Controller('events')
 @ApiTags('Events')
-@Auth(AuthType.Bearer)
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Post()
   @CreateEventSwagger()
+  @Auth(AuthType.Bearer)
   public create(
     @Body() createEventDto: CreateEventDto,
     @ActiveUser() user: ActiveUserData,
@@ -46,42 +46,49 @@ export class EventsController {
 
   @Post(':id/join')
   @JoinEventSwagger()
+  @Auth(AuthType.Bearer)
   public join(@Param('id') id: string, @ActiveUser() user: ActiveUserData) {
     return this.eventsService.join(id, user);
   }
 
   @Post(':id/leave')
   @LeaveEventSwagger()
+  @Auth(AuthType.Bearer)
   public leave(@Param('id') id: string, @ActiveUser() user: ActiveUserData) {
     return this.eventsService.leave(id, user);
   }
 
   @Patch(':id')
   @UpdateEventSwagger()
+  @Auth(AuthType.Bearer)
   public update(@Param('id') id: string, @Body() patchEventDto: PatchEventDto) {
     return this.eventsService.update(id, patchEventDto);
   }
 
   @Get()
   @FindAllEventsSwagger()
+  @Auth(AuthType.None)
   public findAll() {
     return this.eventsService.findAll();
   }
 
   @Get('me')
   @GetMyEventsSwagger()
+  @Auth(AuthType.Bearer)
   public getMyEvents(@ActiveUser() user: ActiveUserData) {
     return this.eventsService.findUserEvents(user);
   }
 
   @Get(':id')
   @FindOneEventSwagger()
+  @Auth(AuthType.None)
   public findOne(@Param('id') id: string) {
     return this.eventsService.findOne(id);
   }
 
   @Get(':id/details')
   @EventDetailsSwagger()
+  @Auth(AuthType.None)
   @UseInterceptors(ClassSerializerInterceptor)
   public async findDetails(@Param('id') id: string) {
     const event = await this.eventsService.findDetails(id);
@@ -92,6 +99,7 @@ export class EventsController {
 
   @Delete(':id')
   @DeleteEventSwagger()
+  @Auth(AuthType.Bearer)
   public delete(@Param('id') id: string, @ActiveUser() user: ActiveUserData) {
     return this.eventsService.delete(id, user);
   }
