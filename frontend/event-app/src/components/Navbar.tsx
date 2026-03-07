@@ -21,7 +21,7 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="font-semibold text-lg text-slate-900 tracking-tight">
-          <span className="text-accent">R</span>adency Events
+          <span className="text-accent">Radency Events</span>
         </Link>
 
         {/* Nav links */}

@@ -99,7 +99,7 @@ export default function EventForm({ initialValues, onSubmit, submitLabel, partic
 
       {/* Description */}
       <div>
-        <label className="label">Description</label>
+        <label className="label">Description *</label>
         <textarea
           value={form.description}
           onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}

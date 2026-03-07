@@ -1,12 +1,13 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: radency-intership
+    container_name: radency-db  
     restart: always
     environment:
       POSTGRES_USER: my_user
       POSTGRES_PASSWORD: password123
-      POSTGRES_DB: radency-internship
+      POSTGRES_DB: radency
+
     ports:
       - "5432:5432"
     volumes:
@@ -19,18 +20,18 @@ services:
       dockerfile: Dockerfile.backend
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-radency}
-      JWT_SECRET: ${JWT_SECRET:-change_this_secret_in_production}
-      JWT_AUDIENCE: ${JWT_AUDIENCE:-radency}
-      JWT_ISSUER: ${JWT_ISSUER:-radency}
-      JWT_ACCESS_TOKEN_TTL: ${JWT_ACCESS_TOKEN_TTL:-3600}
-      JWT_REFRESH_TOKEN_TTL: ${JWT_REFRESH_TOKEN_TTL:-86400}
+      DATABASE_URL: postgresql://my_user:password123@db:5432/radency
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_TOKEN_AUDIENCE: ${JWT_TOKEN_AUDIENCE}
+      JWT_TOKEN_ISSUER: ${JWT_TOKEN_ISSUER}
+      JWT_ACCESS_TOKEN_TTL: ${JWT_ACCESS_TOKEN_TTL}
+      JWT_REFRESH_TOKEN_TTL: ${JWT_REFRESH_TOKEN_TTL}
       PORT: 3000
     ports:
       - "3000:3000"
     depends_on:
-      db:
-        condition: service_healthy
+      - db
 
   frontend:
     build:

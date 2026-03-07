@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { jwtDecode } from 'jwt-decode';
 
 interface JwtPayload {
   sub: string;
@@ -23,7 +22,7 @@ function parseJwt(token: string): JwtPayload {
     atob(base64)
       .split('')
       .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-      .join('')
+      .join(''),
   );
   return JSON.parse(json);
 }
@@ -36,7 +35,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: (accessToken, refreshToken) => {
     const payload = parseJwt(accessToken);
-    localStorage.setItem('tokens', JSON.stringify({ accessToken, refreshToken }));
+    localStorage.setItem(
+      'tokens',
+      JSON.stringify({ accessToken, refreshToken }),
+    );
     set({
       accessToken,
       userId: payload.sub,
@@ -47,7 +49,12 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: () => {
     localStorage.removeItem('tokens');
-    set({ accessToken: null, userId: null, email: null, isAuthenticated: false });
+    set({
+      accessToken: null,
+      userId: null,
+      email: null,
+      isAuthenticated: false,
+    });
   },
 
   hydrate: () => {
