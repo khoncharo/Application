@@ -1,10 +1,9 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PatchEventDto } from '../dtos/patch-event.dto';
 
 export function EventDetailsSwagger() {
   return applyDecorators(
-    ApiBearerAuth(),
     ApiOperation({ summary: 'Get detailed information about an event' }),
 
     ApiResponse({
