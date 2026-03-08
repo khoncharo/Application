@@ -4,7 +4,6 @@ import { RefreshTokenDto } from '../dtos/refresh-token.dto';
 
 export function RefreshSwagger() {
   return applyDecorators(
-    ApiTags('auth'),
     ApiOperation({ summary: 'Refresh access and refresh tokens' }),
     ApiBody({
       description: 'Refresh token payload',
