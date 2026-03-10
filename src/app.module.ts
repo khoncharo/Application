@@ -6,9 +6,17 @@ import { ConfigModule } from './config/config.module';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { EventsModule } from './events/events.module';
+import { TagsModule } from './tags/tags.module';
 
 @Module({
-  imports: [ConfigModule, UsersModule, PrismaModule, AuthModule, EventsModule],
+  imports: [
+    ConfigModule,
+    UsersModule,
+    PrismaModule,
+    AuthModule,
+    EventsModule,
+    TagsModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

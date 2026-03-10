@@ -40,6 +40,7 @@ model Event {
   type         EventType     @default(PUBLIC)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  tags         EventTag[]
 
   @@map("events")
 }
@@ -53,6 +54,22 @@ model Participant {
 
   @@id([userId, eventId])
   @@map("participants")
+}
+
+model Tag {
+  id     String     @id @default(uuid())
+  name   String     @unique
+  events EventTag[]
+}
+
+model EventTag {
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String
+  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagId   String
+
+  @@unique([eventId, tagId])
+  @@map("tags")
 }
 
 enum EventType {
