@@ -1,0 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { ActiveUserData } from '../interfaces/active-user-data.interface';
+import { REQUEST_USER_KEY } from 'src/auth/constans/auth.constans';
+
+export const ActiveUser = createParamDecorator(
+  (field: keyof ActiveUserData | undefined, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest();
+    const user: ActiveUserData = request[REQUEST_USER_KEY];
+    return field ? user?.[field] : user;
+  },
+);
