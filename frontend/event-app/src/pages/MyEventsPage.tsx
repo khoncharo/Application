@@ -4,6 +4,8 @@ import { Calendar, dateFnsLocalizer, type View } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay, startOfMonth, endOfMonth } from 'date-fns';
 import { enUS } from 'date-fns/locale/en-US';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import { getCalendarColor, getTagColor } from '../utils/tagsColours';
+import type { Tag } from '../types';
 import { getMyEvents } from '../api/events';
 import type { UserEvent } from '../types';
 
@@ -20,6 +22,8 @@ interface CalendarEvent {
   start: Date;
   end: Date;
   resource?: UserEvent;
+  color?: string;
+  tags?: Tag[];
 }
 
 type AppView = 'month' | 'week' | 'agenda';
@@ -41,7 +45,8 @@ export default function MyEventsPage() {
   const calEvents: CalendarEvent[] = events.map((e) => {
     const start = new Date(e.dateTime);
     const end = new Date(start.getTime() + 60 * 60 * 1000);
-    return { title: e.name, start, end, resource: e };
+    const color = e.tags && e.tags.length > 0 ? getCalendarColor(e.tags[0].name) : undefined;
+    return { title: e.name, start, end, resource: e, color, tags: e.tags ?? [] };
   });
 
   const handleSelectEvent = (calEvent: CalendarEvent) => {
@@ -138,6 +143,10 @@ export default function MyEventsPage() {
                         onClick={() => handleSelectEvent(e)}
                         className="flex items-center gap-4 p-3 rounded-lg hover:bg-subtle transition-colors text-left w-full group"
                       >
+                        {/* Color dot */}
+                        <div className="shrink-0 flex flex-col items-center gap-1">
+                          <div className="w-2.5 h-2.5 rounded-full mt-1" style={{ backgroundColor: e.color ?? '#6366f1' }} />
+                        </div>
                         <div className="shrink-0 w-12 text-center">
                           <div className="text-xs text-slate-400 uppercase">{format(e.start, 'EEE')}</div>
                           <div className="text-xl font-semibold text-slate-800 leading-none">{format(e.start, 'd')}</div>
@@ -148,6 +157,18 @@ export default function MyEventsPage() {
                           <p className="text-xs text-slate-400 mt-0.5">
                             {format(e.start, 'HH:mm')} – {format(e.end, 'HH:mm')}
                           </p>
+                          {e.tags && e.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              {e.tags.map((tag: Tag) => {
+                                const { bg, text } = getTagColor(tag.name);
+                                return (
+                                  <span key={tag.id} className={`px-1.5 py-0.5 rounded-full text-xs font-medium capitalize ${bg} ${text}`}>
+                                    {tag.name}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       </button>
                     ))}
@@ -169,7 +190,7 @@ export default function MyEventsPage() {
                 toolbar={true}
                 popup
                 style={{ height: '100%' }}
-                eventPropGetter={() => ({ style: { cursor: 'pointer' } })}
+                eventPropGetter={(e: CalendarEvent) => ({ style: { cursor: 'pointer', backgroundColor: e.color ?? '#6366f1', borderColor: e.color ?? '#6366f1' } })}
                 tooltipAccessor={(e) => `${e.title} — ${format(e.start, 'HH:mm')}`}
               />
             </div>

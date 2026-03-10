@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getEventDetails, joinEvent, leaveEvent, deleteEvent } from '../api/events';
 import { useAuthStore } from '../store/authStore';
 import DeleteModal from '../components/DeleteModal';
+import TagChip from '../components/TagChip';
 import type { EventDetails } from '../types';
 
 function formatDate(iso: string) {
@@ -163,7 +164,14 @@ export default function EventDetailsPage() {
           )}
         </div>
 
-        <p className="text-slate-600 leading-relaxed mb-6">{event.description}</p>
+        <p className="text-slate-600 leading-relaxed mb-4">{event.description}</p>
+
+        {/* Tags */}
+        {event.tags && event.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-6">
+            {event.tags.map(tag => <TagChip key={tag.id} tag={tag} size="md" />)}
+          </div>
+        )}
 
         {/* Meta grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">

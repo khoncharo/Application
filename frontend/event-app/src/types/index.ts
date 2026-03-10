@@ -5,6 +5,11 @@ export interface User {
   email: string;
 }
 
+export interface Tag {
+  id: string;
+  name: string;
+}
+
 export interface Event {
   id: string;
   name: string;
@@ -16,9 +21,8 @@ export interface Event {
   userId: string;
   createdAt: string;
   updatedAt: string;
-  _count?: {
-    participants: number;
-  };
+  tags?: Tag[];
+  _count?: { participants: number };
 }
 
 export interface EventDetails {
@@ -32,6 +36,7 @@ export interface EventDetails {
   userId: string;
   participantCount: number;
   participants: User[];
+  tags: Tag[];
   createdAt: string;
   updatedAt: string;
 }
@@ -44,6 +49,7 @@ export interface UserEvent {
   location: string;
   capacity?: number | null;
   joinedAt: string;
+  tags?: Tag[];
 }
 
 export interface AuthTokens {
@@ -70,6 +76,7 @@ export interface CreateEventDto {
   location: string;
   capacity?: number | null;
   type: 'PUBLIC' | 'PRIVATE';
+  tagIds?: string[];
 }
 
 export interface PatchEventDto {
@@ -79,4 +86,5 @@ export interface PatchEventDto {
   location?: string;
   capacity?: number | null;
   type?: 'PUBLIC' | 'PRIVATE';
+  tagIds?: string[];
 }

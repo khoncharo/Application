@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import type { CreateEventDto } from '../types';
+import type { CreateEventDto, Tag } from '../types';
+import { getTags, createTag } from '../api/tags';
+import { getTagColor } from '../utils/tagsColours';
 
 interface EventFormProps {
-  initialValues?: Partial<CreateEventDto>;
+  initialValues?: Partial<CreateEventDto> & { tags?: Tag[] };
   onSubmit: (data: CreateEventDto) => Promise<void>;
   submitLabel: string;
   participantCount?: number;
@@ -17,6 +19,7 @@ interface FormState {
   location: string;
   capacity: string;
   type: 'PUBLIC' | 'PRIVATE';
+  tagIds: string[];
 }
 
 interface FormErrors {
@@ -25,6 +28,7 @@ interface FormErrors {
   dateTime?: string;
   location?: string;
   capacity?: string;
+  tagIds?: string;
 }
 
 export default function EventForm({ initialValues, onSubmit, submitLabel, participantCount }: EventFormProps) {
@@ -35,11 +39,67 @@ export default function EventForm({ initialValues, onSubmit, submitLabel, partic
     location: initialValues?.location ?? '',
     capacity: initialValues?.capacity != null ? String(initialValues.capacity) : '',
     type: initialValues?.type ?? 'PUBLIC',
+    tagIds: initialValues?.tags?.map(t => t.id) ?? initialValues?.tagIds ?? [],
   });
 
+  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+  const [tagSearch, setTagSearch] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState('');
+  const [newTagError, setNewTagError] = useState('');
+  const [newTagLoading, setNewTagLoading] = useState(false);
+
+  useEffect(() => {
+    getTags().then(setAvailableTags).catch(console.error);
+  }, []);
+
+  const toggleTag = (id: string) => {
+    setForm(f => {
+      if (f.tagIds.includes(id)) return { ...f, tagIds: f.tagIds.filter(t => t !== id) };
+      if (f.tagIds.length >= 5) return f;
+      return { ...f, tagIds: [...f.tagIds, id] };
+    });
+  };
+
+  const handleCreateTag = async () => {
+    const name = tagSearch.trim().toLowerCase();
+    if (!name) return;
+    if (name.length < 2 || name.length > 30) {
+      setNewTagError('Tag name must be 2–30 characters');
+      return;
+    }
+    if (!/^[a-z0-9 _-]+$/.test(name)) {
+      setNewTagError('Only letters, numbers, spaces, hyphens, underscores');
+      return;
+    }
+    // If tag already exists in the list, just select it
+    const existing = availableTags.find(t => t.name === name);
+    if (existing) {
+      if (!form.tagIds.includes(existing.id) && form.tagIds.length < 5) {
+        setForm(f => ({ ...f, tagIds: [...f.tagIds, existing.id] }));
+      }
+      setTagSearch('');
+      setNewTagError('');
+      return;
+    }
+    if (form.tagIds.length >= 5) {
+      setNewTagError('Maximum 5 tags reached');
+      return;
+    }
+    setNewTagLoading(true);
+    try {
+      const tag = await createTag(name);
+      setAvailableTags(prev => [...prev, tag]);
+      setForm(f => ({ ...f, tagIds: [...f.tagIds, tag.id] }));
+      setTagSearch('');
+      setNewTagError('');
+    } catch {
+      setNewTagError('Failed to create tag');
+    } finally {
+      setNewTagLoading(false);
+    }
+  };
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
@@ -72,6 +132,7 @@ export default function EventForm({ initialValues, onSubmit, submitLabel, partic
         location: form.location.trim(),
         capacity: form.capacity ? Number(form.capacity) : null,
         type: form.type,
+        tagIds: form.tagIds,
       });
     } catch (err: unknown) {
       const msg =
@@ -92,24 +153,24 @@ export default function EventForm({ initialValues, onSubmit, submitLabel, partic
           value={form.name}
           onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
           className="input-field"
-          placeholder="e.g. React Warsaw Meetup"
+          placeholder="Give your event a name"
         />
-        {errors.name && <p className="error-text">{errors.name}</p>}
+        {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
       </div>
 
       {/* Description */}
       <div>
-        <label className="label">Description *</label>
+        <label className="label">Description</label>
         <textarea
           value={form.description}
           onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
           className="input-field resize-none"
-          rows={4}
-          placeholder="Tell people what this event is about…"
+          rows={3}
+          placeholder="What's this event about?"
         />
       </div>
 
-      {/* Date & Time */}
+      {/* Date/Time */}
       <div>
         <label className="label">Date & Time *</label>
         <DatePicker
@@ -119,12 +180,11 @@ export default function EventForm({ initialValues, onSubmit, submitLabel, partic
           timeFormat="HH:mm"
           timeIntervals={15}
           dateFormat="MMMM d, yyyy HH:mm"
-          minDate={new Date()}
           placeholderText="Pick a date and time"
           className="input-field w-full"
-          wrapperClassName="w-full"
+          minDate={new Date()}
         />
-        {errors.dateTime && <p className="error-text">{errors.dateTime}</p>}
+        {errors.dateTime && <p className="text-red-500 text-sm mt-1">{errors.dateTime}</p>}
       </div>
 
       {/* Location */}
@@ -135,36 +195,126 @@ export default function EventForm({ initialValues, onSubmit, submitLabel, partic
           value={form.location}
           onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
           className="input-field"
-          placeholder="e.g. Warsaw, ul. Złota 59"
+          placeholder="Where is it happening?"
         />
-        {errors.location && <p className="error-text">{errors.location}</p>}
+        {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location}</p>}
       </div>
 
       {/* Capacity */}
       <div>
-        <label className="label">Capacity (optional — leave blank for unlimited)</label>
+        <label className="label">Capacity <span className="text-muted font-normal">(optional)</span></label>
         <input
           type="number"
           value={form.capacity}
           onChange={(e) => setForm((f) => ({ ...f, capacity: e.target.value }))}
           className="input-field"
-          placeholder="e.g. 50"
+          placeholder="Leave empty for unlimited"
           min={1}
         />
-        {errors.capacity && <p className="error-text">{errors.capacity}</p>}
+        {errors.capacity && <p className="text-red-500 text-sm mt-1">{errors.capacity}</p>}
+      </div>
+
+      {/* Tags */}
+      <div>
+        <label className="label">
+          Tags <span className="text-muted font-normal">(optional · max 5)</span>
+        </label>
+
+        {/* Selected tag chips */}
+        {form.tagIds.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-2 mt-1">
+            {form.tagIds.map(id => {
+              const tag = availableTags.find(t => t.id === id);
+              if (!tag) return null;
+              const { bg, text } = getTagColor(tag.name);
+              return (
+                <span key={id} className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${bg} ${text}`}>
+                  {tag.name}
+                  <button type="button" onClick={() => toggleTag(id)} className="hover:opacity-70 ml-0.5">×</button>
+                </span>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Combobox */}
+        {form.tagIds.length < 5 && (
+          <div className="relative">
+            <input
+              type="text"
+              value={tagSearch}
+              onChange={e => { setTagSearch(e.target.value); setNewTagError(''); }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  // If exact match in filtered list — select it
+                  const exact = availableTags.find(t => t.name === tagSearch.toLowerCase().trim());
+                  if (exact) { toggleTag(exact.id); setTagSearch(''); }
+                  else handleCreateTag();
+                }
+                if (e.key === 'Escape') setTagSearch('');
+              }}
+              placeholder="Search or create a tag…"
+              className="input-field text-sm"
+              maxLength={30}
+            />
+            {/* Dropdown */}
+            {tagSearch.trim().length > 0 && (
+              <div className="absolute z-20 mt-1 w-full bg-white border border-border rounded-lg shadow-lg overflow-hidden">
+                {availableTags
+                  .filter(t => t.name.includes(tagSearch.toLowerCase().trim()) && !form.tagIds.includes(t.id))
+                  .slice(0, 8)
+                  .map(tag => {
+                    const { bg, text } = getTagColor(tag.name);
+                    return (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        onClick={() => { toggleTag(tag.id); setTagSearch(''); }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-subtle transition-colors text-left"
+                      >
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${bg} ${text}`}>{tag.name}</span>
+                      </button>
+                    );
+                  })}
+                {/* Create option — shown when no exact match */}
+                {!availableTags.find(t => t.name === tagSearch.toLowerCase().trim()) && (
+                  <button
+                    type="button"
+                    onClick={handleCreateTag}
+                    disabled={newTagLoading}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-accent hover:bg-subtle transition-colors text-left border-t border-border"
+                  >
+                    {newTagLoading ? '…' : <>+ Create <span className="font-medium">"{tagSearch.trim()}"</span></>}
+                  </button>
+                )}
+                {/* No results and already exists */}
+                {availableTags.filter(t => t.name.includes(tagSearch.toLowerCase().trim()) && !form.tagIds.includes(t.id)).length === 0
+                  && availableTags.find(t => t.name === tagSearch.toLowerCase().trim()) && (
+                  <p className="px-3 py-2 text-xs text-slate-400">Already selected</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+        {form.tagIds.length >= 5 && (
+          <p className="text-amber-600 text-xs mt-1">Maximum 5 tags reached</p>
+        )}
+        {newTagError && <p className="text-red-500 text-xs mt-1">{newTagError}</p>}
+        {errors.tagIds && <p className="text-red-500 text-sm mt-1">{errors.tagIds}</p>}
       </div>
 
       {/* Visibility */}
       <div>
         <label className="label">Visibility</label>
-        <div className="flex gap-4">
+        <div className="flex gap-3">
           {(['PUBLIC', 'PRIVATE'] as const).map((t) => (
             <label
               key={t}
               className={`flex items-center gap-2 cursor-pointer px-4 py-2.5 rounded-lg border transition-colors ${
                 form.type === t
-                  ? 'border-accent bg-accent/10 text-accent'
-                  : 'border-border text-slate-600 hover:border-accent/50'
+                  ? 'border-accent bg-subtle text-accent'
+                  : 'border-border text-slate-500 hover:border-slate-300'
               }`}
             >
               <input
@@ -175,19 +325,15 @@ export default function EventForm({ initialValues, onSubmit, submitLabel, partic
                 onChange={() => setForm((f) => ({ ...f, type: t }))}
                 className="sr-only"
               />
-              <span className="text-sm font-medium">{t === 'PUBLIC' ? '🌐 Public' : '🔒 Private'}</span>
+              <span className="text-sm font-medium capitalize">{t.toLowerCase()}</span>
             </label>
           ))}
         </div>
       </div>
 
-      {serverError && (
-        <div className="text-red-500 text-sm">
-          {serverError}
-        </div>
-      )}
+      {serverError && <p className="text-red-500 text-sm">{serverError}</p>}
 
-      <button type="submit" className="btn-primary py-3 mt-2" disabled={loading}>
+      <button type="submit" disabled={loading} className="btn-primary">
         {loading ? 'Saving…' : submitLabel}
       </button>
     </form>
