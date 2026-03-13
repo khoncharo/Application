@@ -73,7 +73,7 @@ export default function EventForm({ initialValues, onSubmit, submitLabel, partic
       setNewTagError('Only letters, numbers, spaces, hyphens, underscores');
       return;
     }
-    // If tag already exists in the list, just select it
+
     const existing = availableTags.find(t => t.name === name);
     if (existing) {
       if (!form.tagIds.includes(existing.id) && form.tagIds.length < 5) {
@@ -104,6 +104,7 @@ export default function EventForm({ initialValues, onSubmit, submitLabel, partic
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
     if (!form.name.trim()) newErrors.name = 'Title is required';
+    if (!form.description.trim()) newErrors.description = 'Description is required';
     if (!form.location.trim()) newErrors.location = 'Location is required';
     if (!form.dateTime) {
       newErrors.dateTime = 'Date and time are required';
@@ -160,7 +161,7 @@ export default function EventForm({ initialValues, onSubmit, submitLabel, partic
 
       {/* Description */}
       <div>
-        <label className="label">Description</label>
+        <label className="label">Description *</label>
         <textarea
           value={form.description}
           onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
@@ -168,6 +169,7 @@ export default function EventForm({ initialValues, onSubmit, submitLabel, partic
           rows={3}
           placeholder="What's this event about?"
         />
+        {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
       </div>
 
       {/* Date/Time */}
@@ -247,7 +249,6 @@ export default function EventForm({ initialValues, onSubmit, submitLabel, partic
               onKeyDown={e => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
-                  // If exact match in filtered list — select it
                   const exact = availableTags.find(t => t.name === tagSearch.toLowerCase().trim());
                   if (exact) { toggleTag(exact.id); setTagSearch(''); }
                   else handleCreateTag();
