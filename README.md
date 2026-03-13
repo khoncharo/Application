@@ -1,94 +1,62 @@
-# Radency Events
+# Application
 
-A full-stack event management application built with NestJS, React, and PostgreSQL.
+A full-stack event management application built with NestJS, React
 
 ## Tech Stack
 
 **Backend:** NestJS, Prisma, PostgreSQL, JWT Auth  
-**Frontend:** React, TypeScript, Vite, Tailwind CSS, Zustand
+**Frontend:** React, TypeScript, Vite, Tailwind CSS, Zustand  
+**AI Assistant:** Groq (llama-3.1-8b-instant)
 
 ---
 
 ## Quick Start with Docker
 
-The easiest way to run the project. Requires [Docker](https://www.docker.com/get-started) to be installed.
-
 ```bash
-git clone <your-repo-url>
+git clone <https://github.com/khoncharo/Application.git>
 cd radency-internship
 docker compose up --build
 ```
 
-- Frontend: http://localhost
-- Backend API: http://localhost:3000
-- API Docs (Swagger): http://localhost:3000/docs
+-Frontend: http://localhost
+-Backend API: http://localhost:3000
+-API Docs (Swagger): http://localhost:3000/docs
 
 The database is created and migrations run automatically on first start.
 
 ---
 
-## Manual Setup (for development)
-
-### Prerequisites
-
-- Node.js 20+
-- PostgreSQL running locally
-
-### 1. Clone the repository
+### Set up environment variable
 
 ```bash
-git clone <your-repo-url>
-cd radency-internship
+cp .env.example .env
 ```
 
-### 2. Backend setup
+Open `.env` and fill in the required values:
 
-```bash
-# Install dependencies
-npm install
+**`GROQ_API_KEY`** — get your free key at [console.groq.com](https://console.groq.com) - API Keys - Create key. Paste it as:
 
-# Set up the database (runs migrations and generates Prisma client)
-npx prisma migrate dev
-
-# Start the backend in development mode
-npm run start:dev
+```
+GROQ_API_KEY=your_key
 ```
 
-Backend runs on http://localhost:3000  
-Swagger docs at http://localhost:3000/docs
+All other values are pre-filled with working defaults for local development.
 
-### 3. Frontend setup
+---
 
-Open a second terminal:
+## Storybook
+
+Component library built with Storybook 8.
 
 ```bash
 cd frontend/event-app
 
-# Install dependencies
-npm install
-
-# Start the frontend dev server
-npm run dev
+npm run storybook
 ```
 
-Frontend runs on http://localhost:5173
+Storybook runs at `http://localhost:6006`.
 
-> **Note:** Make sure to open http://localhost:5173 (not http://127.0.0.1:5173) to avoid CORS issues.
-
----
-
-## Environment Variables
-
-The `.env` file in the project root controls backend configuration:
-
-| Variable                | Description                       |
-| ----------------------- | --------------------------------- |
-| `DATABASE_URL`          | PostgreSQL connection string      |
-| `JWT_SECRET`            | Secret key for signing JWT tokens |
-| `JWT_AUDIENCE`          | JWT audience claim                |
-| `JWT_ISSUER`            | JWT issuer claim                  |
-| `JWT_ACCESS_TOKEN_TTL`  | Access token lifetime in seconds  |
-| `JWT_REFRESH_TOKEN_TTL` | Refresh token lifetime in seconds |
+Includes stories for: `Button`, `Input`, `TagChip`, `EventCard`, `EventForm`, `DeleteModal`.
 
 ---
 
@@ -96,7 +64,9 @@ The `.env` file in the project root controls backend configuration:
 
 - **Authentication** — Register, login, JWT-based auth with refresh tokens
 - **Events** — Create, view, edit, and delete events
+- **Tags** — searchable, color-coded tags with ability to create custom ones
+- **Filter drawer** — filter events by tag on the main listing page
 - **Visibility** — Public events visible to everyone; private events visible only to logged-in users
 - **Participation** — Join and leave events; capacity limits enforced
+- **AI Assistant** — natural language queries about events powered by Groq (requires login)
 - **Calendar** — Monthly, weekly, and agenda views for your events
-- **Responsive** — Works on desktop and mobile
