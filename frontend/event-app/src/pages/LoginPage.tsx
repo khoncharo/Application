@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../api/auth';
 import { useAuthStore } from '../store/authStore';
@@ -11,10 +11,9 @@ export default function LoginPage() {
   const { login: storeLogin, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
 
-  if (isAuthenticated) {
-    navigate('/');
-    return null;
-  }
+  useEffect(() => {
+    if (isAuthenticated) navigate('/');
+  }, [isAuthenticated]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +38,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-semibold text-slate-800 tracking-tight">
-            <span className="text-accent">Radency Events</span>
+            <span className="text-accent">R</span>adency Events
           </h1>
           <p className="text-slate-400 text-sm mt-1">Sign in to your account</p>
         </div>
@@ -70,11 +69,7 @@ export default function LoginPage() {
               />
             </div>
 
-            {error && (
-              <div className="text-red-500 text-sm">
-                {error}
-              </div>
-            )}
+            {error && <p className="text-red-500 text-sm">{error}</p>}
 
             <button type="submit" className="btn-primary py-3 mt-1" disabled={loading}>
               {loading ? 'Signing in…' : 'Sign in'}
