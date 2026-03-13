@@ -66,6 +66,7 @@ export default function EventDetailsPage() {
   const isOrganizer = isAuthenticated && event.userId === userId;
   const isParticipant = isAuthenticated && event.participants.some((p) => p.id === userId);
   const isFull = event.capacity != null && event.participantCount >= event.capacity;
+  const isPast = new Date(event.dateTime) < new Date();
 
   const handleJoin = async () => {
     if (!isAuthenticated) {
@@ -219,10 +220,10 @@ export default function EventDetailsPage() {
               <div>
                 <button
                   onClick={() => navigate('/login')}
-                  disabled={isFull}
+                  disabled={isFull || isPast}
                   className="btn-primary w-full sm:w-auto"
                 >
-                  {isFull ? 'Event Full' : 'Sign in to Join'}
+                  {isPast ? 'Event Ended' : isFull ? 'Event Full' : 'Sign in to Join'}
                 </button>
                 <p className="text-xs text-slate-400 mt-2">
                   Don't have an account?{' '}
@@ -240,10 +241,10 @@ export default function EventDetailsPage() {
             ) : (
               <button
                 onClick={handleJoin}
-                disabled={actionLoading || isFull}
+                disabled={actionLoading || isFull || isPast}
                 className="btn-primary w-full sm:w-auto"
               >
-                {actionLoading ? 'Joining…' : isFull ? 'Event Full' : 'Join Event'}
+                {actionLoading ? 'Joining…' : isPast ? 'Event Ended' : isFull ? 'Event Full' : 'Join Event'}
               </button>
             )}
           </div>

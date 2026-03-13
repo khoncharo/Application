@@ -29,7 +29,9 @@ export default function EventsListPage() {
     );
   };
 
-  const visible = isAuthenticated ? events : events.filter(e => e.type === 'PUBLIC');
+  const now = new Date();
+  const visible = (isAuthenticated ? events : events.filter(e => e.type === 'PUBLIC'))
+    .filter(e => new Date(e.dateTime) > now);
 
   const filtered = visible.filter(e => {
     const matchesSearch =
