@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { EventsModule } from './events/events.module';
 import { TagsModule } from './tags/tags.module';
+import { AiAssistantModule } from './ai-assistant/ai-assistant.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { TagsModule } from './tags/tags.module';
     AuthModule,
     EventsModule,
     TagsModule,
+    AiAssistantModule,
   ],
   controllers: [AppController],
   providers: [AppService],
