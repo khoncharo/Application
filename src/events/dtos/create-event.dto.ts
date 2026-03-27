@@ -1,11 +1,14 @@
 import { Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  IsArray,
   IsDate,
   IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
 } from 'class-validator';
 import { EventType } from '@prisma/client';
 
@@ -33,4 +36,10 @@ export class CreateEventDto {
 
   @IsEnum(EventType)
   type: EventType;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(5, { message: 'An event can have at most 5 tags' })
+  @IsUUID('4', { each: true })
+  tagIds?: string[];
 }

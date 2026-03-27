@@ -1,54 +1,40 @@
-import { Exclude, Expose, Type } from 'class-transformer';
+import { EventType } from '@prisma/client';
+import { Expose, Type } from 'class-transformer';
 
-export class ParticipantResponseDto {
-  @Expose()
-  id: string;
+export class UserDto {
+  @Expose() id: string;
+  @Expose() firstName: string;
+  @Expose() lastName: string;
+  @Expose() email: string;
+}
 
-  @Expose()
-  firstName: string;
-
-  @Expose()
-  lastName: string;
-
-  @Expose()
-  email: string;
+export class TagDto {
+  @Expose() id: string;
+  @Expose() name: string;
 }
 
 export class EventDetailsDto {
-  @Expose()
-  id: string;
+  @Expose() id: string;
+  @Expose() name: string;
+  @Expose() description: string;
+  @Expose() dateTime: Date;
+  @Expose() location: string;
+  @Expose() capacity: number | null;
+  @Expose() type: EventType;
+  @Expose() userId: string;
+  @Expose() participantCount: number;
+  @Expose() createdAt: Date;
+  @Expose() updatedAt: Date;
 
   @Expose()
-  name: string;
+  @Type(() => UserDto)
+  user: UserDto;
 
   @Expose()
-  description: string;
+  @Type(() => UserDto)
+  participants: UserDto[];
 
   @Expose()
-  dateTime: Date;
-
-  @Expose()
-  location: string;
-
-  @Expose()
-  capacity: number;
-
-  @Expose()
-  participantCount: number;
-
-  @Expose()
-  createdAt: Date;
-
-  @Expose()
-  updatedAt: Date;
-
-  @Expose()
-  @Type(() => ParticipantResponseDto)
-  participants: ParticipantResponseDto[];
-
-  @Exclude()
-  user: any;
-
-  @Expose()
-  userId: string;
+  @Type(() => TagDto)
+  tags: TagDto[];
 }

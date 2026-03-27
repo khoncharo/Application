@@ -8,41 +8,53 @@ import { CreateEventDto } from './dtos/create-event.dto';
 import { ActiveUserData } from 'src/auth/interfaces/active-user-data.interface';
 import { PrismaService } from 'src/prisma/providers/prisma.service';
 import { PatchEventDto } from './dtos/patch-event.dto';
-import { UserEventDto } from './dtos/user-event.dto';
-import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class EventsService {
   constructor(private readonly prisma: PrismaService) {}
 
   public async create(createEventDto: CreateEventDto, user: ActiveUserData) {
+    const { tagIds, ...rest } = createEventDto;
     return await this.prisma.event.create({
       data: {
-        ...createEventDto,
+        ...rest,
         userId: user.sub,
+        ...(tagIds?.length && {
+          tags: { create: tagIds.map((tagId) => ({ tagId })) },
+        }),
+      },
+      include: {
+        _count: { select: { participants: true } },
+        tags: { include: { tag: true } },
       },
     });
   }
 
   public async update(id: string, patchEventDto: PatchEventDto) {
-    const event = await this.prisma.event.findUnique({
-      where: { id },
-    });
+    const event = await this.prisma.event.findUnique({ where: { id } });
 
     if (!event) {
       throw new NotFoundException(`Event ${id} not found`);
     }
 
+    const { tagIds, ...rest } = patchEventDto;
     return await this.prisma.event.update({
       where: { id },
-      data: patchEventDto,
+      data: {
+        ...rest,
+        ...(tagIds !== undefined && {
+          tags: { deleteMany: {}, create: tagIds.map((tagId) => ({ tagId })) },
+        }),
+      },
+      include: {
+        _count: { select: { participants: true } },
+        tags: { include: { tag: true } },
+      },
     });
   }
 
   public async delete(id: string, user: ActiveUserData) {
-    const event = await this.prisma.event.findUnique({
-      where: { id },
-    });
+    const event = await this.prisma.event.findUnique({ where: { id } });
 
     if (!event) {
       throw new NotFoundException(`Event with ID ${id} not found`);
@@ -53,27 +65,32 @@ export class EventsService {
     }
 
     await this.prisma.event.delete({ where: { id } });
-
     return { deleted: true, id };
   }
 
   public async findAll() {
-    return await this.prisma.event.findMany({
-      include: {
-        _count: {
-          select: { participants: true },
+    return await this.prisma.event
+      .findMany({
+        orderBy: { dateTime: 'asc' },
+        include: {
+          _count: { select: { participants: true } },
+          tags: { include: { tag: true } },
         },
-      },
-    });
+      })
+      .then((events) =>
+        events.map((e) => ({
+          ...e,
+          tags: e.tags.map((et) => et.tag),
+        })),
+      );
   }
 
   public async findOne(id: string) {
     const event = await this.prisma.event.findUnique({
       where: { id },
       include: {
-        _count: {
-          select: { participants: true },
-        },
+        _count: { select: { participants: true } },
+        tags: { include: { tag: true } },
       },
     });
 
@@ -92,12 +109,7 @@ export class EventsService {
     }
 
     const alreadyJoined = await this.prisma.participant.findUnique({
-      where: {
-        userId_eventId: {
-          userId: user.sub,
-          eventId: id,
-        },
-      },
+      where: { userId_eventId: { userId: user.sub, eventId: id } },
     });
 
     if (alreadyJoined) {
@@ -105,21 +117,13 @@ export class EventsService {
     }
 
     return await this.prisma.participant.create({
-      data: {
-        userId: user.sub,
-        eventId: id,
-      },
+      data: { userId: user.sub, eventId: id },
     });
   }
 
   public async leave(id: string, user: ActiveUserData) {
     const participant = await this.prisma.participant.findUnique({
-      where: {
-        userId_eventId: {
-          userId: user.sub,
-          eventId: id,
-        },
-      },
+      where: { userId_eventId: { userId: user.sub, eventId: id } },
     });
 
     if (!participant) {
@@ -127,12 +131,7 @@ export class EventsService {
     }
 
     await this.prisma.participant.delete({
-      where: {
-        userId_eventId: {
-          userId: user.sub,
-          eventId: id,
-        },
-      },
+      where: { userId_eventId: { userId: user.sub, eventId: id } },
     });
 
     return { left: true, eventId: id };
@@ -143,14 +142,9 @@ export class EventsService {
       where: { id },
       include: {
         user: true,
-        participants: {
-          include: {
-            user: true,
-          },
-        },
-        _count: {
-          select: { participants: true },
-        },
+        participants: { include: { user: true } },
+        _count: { select: { participants: true } },
+        tags: { include: { tag: true } },
       },
     });
 
@@ -158,12 +152,13 @@ export class EventsService {
       throw new NotFoundException(`Event with ID ${id} not found`);
     }
 
-    const { _count, participants, ...rest } = event;
+    const { _count, participants, tags, ...rest } = event;
 
     return {
       ...rest,
       participantCount: _count.participants,
       participants: participants.map(({ user }) => user),
+      tags: tags.map((et) => et.tag),
     };
   }
 
@@ -172,24 +167,20 @@ export class EventsService {
       where: { userId: user.sub },
       include: {
         event: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            dateTime: true,
-            location: true,
-            capacity: true,
-          },
+          include: { tags: { include: { tag: true } } },
         },
       },
     });
 
-    return participants.map(({ event, joinedAt }) =>
-      plainToInstance(
-        UserEventDto,
-        { ...event, joinedAt },
-        { excludeExtraneousValues: true },
-      ),
-    );
+    return participants.map((p) => ({
+      id: p.event.id,
+      name: p.event.name,
+      description: p.event.description,
+      dateTime: p.event.dateTime,
+      location: p.event.location,
+      capacity: p.event.capacity,
+      joinedAt: p.joinedAt,
+      tags: p.event.tags.map((et) => et.tag),
+    }));
   }
 }

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const BASE_URL = 'http://localhost:3000';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -20,7 +20,11 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const original = error.config;
-    if (error.response?.status === 401 && !original._retry) {
+    const isAuthEndpoint =
+      original.url?.includes('/auth/login') ||
+      original.url?.includes('/auth/register');
+
+    if (error.response?.status === 401 && !original._retry && !isAuthEndpoint) {
       original._retry = true;
       try {
         const tokens = localStorage.getItem('tokens');
@@ -34,7 +38,8 @@ apiClient.interceptors.response.use(
         return apiClient(original);
       } catch {
         localStorage.removeItem('tokens');
-        window.location.href = '/login';
+        window.history.pushState({}, '', '/login');
+        window.dispatchEvent(new PopStateEvent('popstate'));
       }
     }
     return Promise.reject(error);
